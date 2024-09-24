@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Реєстрація</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .register-form {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 300px;
+    }
+    .register-form h2 {
+      text-align: center;
+    }
+    .register-form input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .register-form button {
+      width: 100%;
+      padding: 10px;
+      background-color: #333;
+      color: #00ff99;
+      border: none;
+      cursor: pointer;
+    }
+    .register-form button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-form">
+    <h2>Реєстрація</h2>
+    <form id="registerForm">
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Пароль" required>
+      <button type="submit">Зареєструватися</button>
+    </form>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+  <script>
+    // Firebase конфігурація
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbk-8Z1msxjBkC-ystVwvXig26bsSHolE",
+      authDomain: "photo-gallery-20dd5.firebaseapp.com",
+      projectId: "photo-gallery-20dd5",
+    };
+
+    // Ініціалізація Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Обробка реєстрації
+    document.getElementById('registerForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          alert('Користувача успішно зареєстровано!');
+          window.location.href = 'molod_za_myr.html';  // Переадресація на сторінку входу
+        })
+        .catch((error) => {
+          alert('Помилка: ' + error.message);
+        });
+    });
+  </script>
+</body>
+</html>
