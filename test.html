@@ -136,7 +136,18 @@
       <button type="submit" class="chip-button">Завантажити</button>
     </form>
   </div>
-
+<div id="uploadForm">
+  <form id="videoUploadForm">
+    <input type="text" id="video-title" placeholder="Назва відео">
+        <input type="file" id="video-file" accept="video/*">
+        <select id="privacy">
+            <option value="public">Публічне</option>
+            <option value="private">Приватне</option>
+        </select>
+        <input type="text" id="whitelist-emails" placeholder="Електронні адреси, через кому (для приватних відео)">
+        <button id="upload-video">Завантажити відео</button>
+    </form>
+  </div>
   <div id="colorControls">
     <h3>Зміна кольору</h3>
     <label for="backgroundColor">Колір фону:</label>
