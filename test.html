@@ -1,1 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Архівні фото з подорожі</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    footer {
+      background-color: #333;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 10px auto;
+    }
+    .chip-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    .chip-button {
+      display: inline-block;
+      background: #333;
+      color: #00ff99;
+      padding: 15px 30px;
+      font-size: 1em;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      text-decoration: none;
+      border: 2px solid #00ff99;
+      box-shadow: 0 0 10px rgba(0, 255, 153, 0.5);
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border-radius: 5px;
+    }
+    .chip-button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(0, 255, 153, 0.75);
+    }
+    #uploadForm {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      left: 50%;
+      transform: translate(-50%, -100%); /* Початковий стан (форма виїжджає згори) */
+      z-index: 1000;
+      opacity: 0;
+      transition: transform 0.5s ease, opacity 0.5s ease; /* Анімація */
+    }
+    
+    #loginForm {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      position: fixed;
+      left: 50%;
+      transform: translate(-50%, -100%); /* Початковий стан (форма виїжджає згори) */
+      z-index: 1000;
+      opacity: 0;
+      transition: transform 0.5s ease, opacity 0.5s ease; /* Анімація */
+      }
+    #loginForm.active {
+      transform: translate(-50%, 0); /* Переміщення вниз до центру */
+      opacity: 1; /* Плавна поява */
+    }
+    #uploadForm.active {
+      transform: translate(-50%, 0); /* Переміщення вниз до центру */
+      opacity: 1; /* Плавна поява */
+    }
+    #error-message {
+      color: red;
+    }
+    .chip-grid img {
+      position: relative;
+    }
+    .delete-button {
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    .delete-button:hover {
+      background: rgba(255, 0, 0, 0.7);
+    }
+    #colorControls {
+      margin: 20px;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <button id="login" onclick="openLoginForm()" class="chip-button">Увійти</button>
+  <button id="openUploadForm" onclick="openUploadForm()" class="chip-button" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: none;"><i class="material-icons">add</i></button>
 
+  <!-- Форма входу -->
+  <div id="loginForm">
+    <h2>Вхід</h2>
+    <form id="loginFormElement">
+      <label for="email">Електронна пошта:</label>
+      <input type="email" id="email" name="email" required>
+      <label for="password">Пароль:</label>
+      <input type="password" id="password" name="password" required>
+      <button type="submit" class="chip-button">Увійти</button>
+      <p id="error-message"></p>
+    </form>
+  </div>
+
+  <!-- Форма завантаження зображень -->
+  <div id="uploadForm">
+    <form id="imageUploadForm">
+      <label for="fileInput">Виберіть зображення:</label>
+      <input type="file" id="fileInput" name="file" accept="image/*" required>
+      <button type="submit" class="chip-button">Завантажити</button>
+    </form>
+  </div>
+
+  <div id="colorControls">
+    <h3>Зміна кольору</h3>
+    <label for="backgroundColor">Колір фону:</label>
+    <input type="color" id="backgroundColor" onchange="changeBackgroundColor()">
+    <button onclick="resetColors()" class="chip-button">Скинути кольори</button>
+  </div>
+
+  <div id="rules">
+    <h3>Правила користування</h3>
+    <p>1. Заборонено завантажувати порнографічний контент.</p>
+    <p>2. Заборонено завантажувати матеріали, що порушують авторські права.</p>
+    <p>3. Контент, що порушує правила, буде видалено без попередження.</p>
+  </div>
+
+  <div id="version">
+    <h3>Версія сайту: 2.1</h3>
+  </div>
+
+  <div class="chip-grid" id="imagesContainer"></div>
+
+  <footer>
+    <p>© 2024 UkraineApps. Всі права захищені.</p>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+  <script>
+    // Firebase конфігурація
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbk-8Z1msxjBkC-ystVwvXig26bsSHolE",
+      authDomain: "photo-gallery-20dd5.firebaseapp.com",
+      databaseURL: "https://photo-gallery-20dd5-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "photo-gallery-20dd5",
+      storageBucket: "photo-gallery-20dd5.appspot.com",
+      messagingSenderId: "565100326977",
+      appId: "1:565100326977:web:c7c02d0082ee24b4ca56c0",
+      measurementId: "G-H5QHS9YQK4"
+    };
+
+    // Ініціалізація Firebase
+    firebase.initializeApp(firebaseConfig);
+    const storage = firebase.storage();
+    const auth = firebase.auth();
+
+    // Функція для відкриття форми завантаження зображень
+    window.openUploadForm = function() {
+      document.getElementById("uploadForm").classList.add("active");
+    };
+
+    // Функція для відкриття форми входу
+    window.openLoginForm = function() {
+      document.getElementById("loginForm").classList.add("active");
+    };
+
+    // Обробка форми входу
+    document.getElementById("loginFormElement").addEventListener("submit", function(event) {
+      event.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const errorMessage = document.getElementById("error-message");
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          document.getElementById("loginForm").style.display = "none";
+          document.getElementById("openUploadForm").style.display = "block";
+          errorMessage.innerHTML = '';
+          loadImages(); // Завантажуємо зображення після входу
+        })
+        .catch((error) => {
+          errorMessage.innerHTML = 'Помилка: ' + error.message;
+        });
+    });
+
+    // Обробка завантаження зображень
+    document.getElementById("imageUploadForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      const file = document.getElementById("fileInput").files[0];
+      const storageRef = storage.ref('images/' + file.name);
+      
+      storageRef.put(file).then(() => {
+        alert('Зображення завантажено');
+        document.getElementById("uploadForm").style.display = "none";
+        loadImages();
+      }).catch((error) => {
+        alert('Помилка завантаження: ' + error.message);
+      });
+    });
+
+    // Функція для завантаження зображень з Firebase Storage
+    function loadImages() {
+      const storageRef = storage.ref().child('images/');
+      const imagesContainer = document.getElementById("imagesContainer");
+      imagesContainer.innerHTML = ''; // Очищаємо контейнер перед завантаженням
+
+      storageRef.listAll().then((result) => {
+        result.items.forEach((imageRef) => {
+          imageRef.getDownloadURL().then((url) => {
+            // Створюємо елемент зображення
+            const imgElement = document.createElement("img");
+            imgElement.src = url;
+
+            // Додаємо кнопку видалення тільки для адміністратора
+            const deleteButton = document.createElement("button");
+            deleteButton.className = "delete-button";
+            deleteButton.textContent = "Видалити";
+
+            deleteButton.onclick = function() {
+              if (auth.currentUser && auth.currentUser.email === "zhuzhun2008@gmail.com") {
+                deleteImage(imageRef, imgElement);
+              } else {
+                alert("Видаляти може лише адміністратор");
+              }
+            };
+
+            // Додаємо зображення та кнопку видалення в контейнер
+            const imgContainer = document.createElement("div");
+            imgContainer.appendChild(imgElement);
+            if (auth.currentUser && auth.currentUser.email === "zhuzhun2008@gmail.com") {
+              imgContainer.appendChild(deleteButton);
+            }
+            imagesContainer.appendChild(imgContainer);
+          });
+        });
+      }).catch((error) => {
+        console.log("Помилка завантаження зображень: ", error);
+      });
+    }
+
+    // Функція для видалення зображення
+    function deleteImage(imageRef, imgElement) {
+      imageRef.delete().then(() => {
+        alert("Зображення видалено");
+        imgElement.parentElement.remove();
+      }).catch((error) => {
+        console.log("Помилка при видаленні зображення: ", error);
+      });
+    }
+
+    // Виклик функції для завантаження зображень при завантаженні сторінки
+
+    // Зміна кольорів
+    function changeBackgroundColor() {
+      const color = document.getElementById("backgroundColor").value;
+      document.body.style.backgroundColor = color;
+      localStorage.setItem('backgroundColor', color); // Зберігання кольору у localStorage
+    }
+
+    function resetColors() {
+      document.body.style.backgroundColor = "#f4f4f4";
+      localStorage.removeItem('backgroundColor'); // Видалення кольору з localStorage
+    }
+
+    // Завантаження збереженого кольору
+    function loadSavedColors() {
+      const savedColor = localStorage.getItem('backgroundColor');
+      if (savedColor) {
+        document.body.style.backgroundColor = savedColor;
+        document.getElementById('backgroundColor').value = savedColor; // Встановлення значення в input
+      }
+    }
+
+    // Перевірка геолокації користувача
+    fetch('https://ipapi.co/json/')
+      .then(response => response.json())
+      .then(data => {
+        const blockedCountries = ["RU", "BY", "IR", "KP"]; // Список заборонених країн
+        if (blockedCountries.includes(data.country)) { // Якщо країна в списку
+          document.getElementById("colorControls").style.display = "none"; // Сховати управління кольором
+          document.body.style.backgroundColor = "#f4f4f4";
+          localStorage.removeItem('backgroundColor');
+        } else {
+          document.getElementById("colorControls").style.display = "block"; // Показати управління кольором
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching geolocation data:", error);
+      });
+          window.onload = function() {
+    loadSavedColors(); // Ваш код для збереження кольорів
+    loadImages()
+          }
+  </script>
+</body>
+</html>
