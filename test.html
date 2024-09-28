@@ -221,7 +221,12 @@
     window.openLoginForm = function() {
       document.getElementById("loginForm").classList.add("active");
     };
-
+    window.openUploadvideoForm = function() {
+      document.getElementById("uploadForm2").classList.add("active");
+    };
+    window.openUploadphotoForm = function() {
+      document.getElementById("uploadForm").classList.add("active");
+    };
     // Обробка форми входу
     document.getElementById("loginFormElement").addEventListener("submit", function(event) {
       event.preventDefault();
