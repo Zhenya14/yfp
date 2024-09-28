@@ -117,7 +117,6 @@
       right: 20px;
       z-index: 1000;
       cursor: pointer;
-      box-shadow: 0 0 10px rgba(0, 255, 153, 0.5);
       display: none; /* Сховано до авторизації */
     }
     #uploadButtons {
@@ -182,6 +181,15 @@
   <!-- Галерея -->
   <div id="gallery" class="chip-grid"></div>
 
+  <!-- Панель зміни кольору -->
+  <div id="colorControls">
+    <h3>Зміна кольорів:</h3>
+    <button onclick="changeColor('#ff9999')">Червоний</button>
+    <button onclick="changeColor('#99ff99')">Зелений</button>
+    <button onclick="changeColor('#9999ff')">Синій</button>
+    <button onclick="resetColor()">Скинути</button>
+  </div>
+
   <footer>
     <p>© 2024 UkraineApps. Всі права захищені.</p>
   </footer>
@@ -198,18 +206,21 @@
       projectId: "photo-gallery-20dd5",
       storageBucket: "photo-gallery-20dd5.appspot.com",
       messagingSenderId: "565100326977",
-      appId: "1:565100326977:web:c7c02d0082ee24b4ca56c0",
-      measurementId: "G-H5QHS9YQK4"
+      appId: "1:565100326977:web:17a7fa2df2aeaa51231a19"
     };
-
     firebase.initializeApp(firebaseConfig);
-    const storage = firebase.storage();
     const auth = firebase.auth();
+    const storage = firebase.storage();
     const db = firebase.database();
 
     // Показувати кнопку "+" після успішної авторизації
     function showPlusButton() {
       document.getElementById("openMenuButton").style.display = "block";
+    }
+
+    // Відкрити форму входу
+    function openLoginForm() {
+      document.getElementById("loginForm").classList.add("active");
     }
 
     document.getElementById("loginFormElement").addEventListener("submit", function(event) {
@@ -221,6 +232,7 @@
         document.getElementById("login").style.display = "none";
         document.getElementById("loginForm").classList.remove("active");
         showPlusButton();
+        saveUserColorPreference(); // Зберегти колір після авторизації
       } else {
         document.getElementById("error-message").textContent = "Невірна електронна адреса або пароль";
       }
@@ -236,77 +248,32 @@
       }
     }
 
-    // Відкриття форми завантаження фото
+    // Відкрити форми завантаження
     function openUploadphotoForm() {
       closeForms();
       document.getElementById("uploadForm").classList.add("active");
     }
-
-    // Відкриття форми завантаження відео
     function openUploadvideoForm() {
       closeForms();
       document.getElementById("uploadForm2").classList.add("active");
     }
-
-    // Закриття всіх форм
     function closeForms() {
       document.getElementById("uploadForm").classList.remove("active");
       document.getElementById("uploadForm2").classList.remove("active");
     }
 
-    // Завантаження зображення в Firebase
-    document.getElementById("imageUploadForm").addEventListener("submit", function(event) {
-      event.preventDefault();
-      const file = document.getElementById("fileInput").files[0];
-      const storageRef = storage.ref().child('images/' + file.name);
-      const uploadTask = storageRef.put(file);
+    // Зміна кольору фону
+    function changeColor(color) {
+      document.body.style.backgroundColor = color;
+      localStorage.setItem('bgColor', color); // Зберегти колір у локальному сховищі
+    }
 
-      uploadTask.on('state_changed', function(snapshot) {
-        // Процес завантаження
-      }, function(error) {
-        console.error("Помилка завантаження: ", error);
-      }, function() {
-        uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
-          const newImageRef = db.ref('images').push();
-          newImageRef.set({
-            url: downloadURL,
-            name: file.name
-          });
-          alert("Зображення успішно завантажене!");
-        });
-      });
-    });
+    function resetColor() {
+      document.body.style.backgroundColor = "#f4f4f4";
+      localStorage.removeItem('bgColor'); // Видалити колір з локального сховища
+    }
 
-    // Завантаження відео
-    document.getElementById("videoUploadForm").addEventListener("submit", function(event) {
-      event.preventDefault();
-      const file = document.getElementById("video-file").files[0];
-      const title = document.getElementById("video-title").value;
-      const privacy = document.getElementById("privacy").value;
-      const whitelistEmails = document.getElementById("whitelist-emails").value.split(',').map(email => email.trim());
-
-      const storageRef = storage.ref().child('videos/' + file.name);
-      const uploadTask = storageRef.put(file);
-
-      uploadTask.on('state_changed', function(snapshot) {
-        // Процес завантаження
-      }, function(error) {
-        console.error("Помилка завантаження відео: ", error);
-      }, function() {
-        uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
-          const newVideoRef = db.ref('videos').push();
-          newVideoRef.set({
-            title: title,
-            url: downloadURL,
-            privacy: privacy,
-            whitelistEmails: whitelistEmails
-          });
-          alert("Відео успішно завантажено!");
-        });
-      });
-    });
-
-    // Відображення галереї
+    // Завантаження зображень і відображення галереї
     db.ref('images').on('value', function(snapshot) {
       const gallery = document.getElementById("gallery");
       gallery.innerHTML = '';
@@ -333,6 +300,35 @@
         }
       });
     });
+
+    // Перевірка місцезнаходження та блокування зміни кольору
+    const blockedCountries = ['BY', 'RU', 'KP', 'IR', 'CN'];
+    fetch('https://ipapi.co/json/')
+      .then(response => response.json())
+      .then(data => {
+        if (blockedCountries.includes(data.country)) {
+          document.getElementById('colorControls').style.display = 'none'; // Сховати палітру
+        } else {
+          loadUserColorPreference(); // Завантажити збережений колір
+        }
+      });
+
+    // Завантажити збережений колір
+    function loadUserColorPreference() {
+      const savedColor = localStorage.getItem('bgColor');
+      if (savedColor) {
+        document.body.style.backgroundColor = savedColor;
+      }
+    }
+
+    // Зберегти колір користувача
+    function saveUserColorPreference() {
+      const savedColor = localStorage.getItem('bgColor');
+      if (savedColor) {
+        document.body.style.backgroundColor = savedColor;
+      }
+    }
+
   </script>
 </body>
 </html>
