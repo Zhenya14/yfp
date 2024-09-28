@@ -206,8 +206,7 @@
       projectId: "photo-gallery-20dd5",
       storageBucket: "photo-gallery-20dd5.appspot.com",
       messagingSenderId: "565100326977",
-      appId: "1:565100326977:web:c7c02d0082ee24b4ca56c0",
-      measurementId: "G-H5QHS9YQK4"
+      appId: "1:565100326977:web:7b3681be27b2f40e3bbf5d"
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
@@ -224,19 +223,20 @@
       document.getElementById("loginForm").classList.add("active");
     }
 
+    // Обробка форми входу
     document.getElementById("loginFormElement").addEventListener("submit", function(event) {
       event.preventDefault();
       var email = document.getElementById("email").value;
       var password = document.getElementById("password").value;
-      if (email === "zhuzhun2008@gmail.com" && password === "yourpassword") {
+
+      auth.signInWithEmailAndPassword(email, password).then(function() {
         alert("Успішний вхід");
         document.getElementById("login").style.display = "none";
         document.getElementById("loginForm").classList.remove("active");
         showPlusButton();
-        saveUserColorPreference(); // Зберегти колір після авторизації
-      } else {
-        document.getElementById("error-message").textContent = "Невірна електронна адреса або пароль";
-      }
+      }).catch(function(error) {
+        document.getElementById("error-message").textContent = error.message;
+      });
     });
 
     // Показати або сховати кнопки завантаження фото/відео
@@ -271,8 +271,54 @@
 
     function resetColor() {
       document.body.style.backgroundColor = "#f4f4f4";
-      localStorage.removeItem('bgColor'); // Видалити колір з локального сховища
+      localStorage.removeItem('bgColor'); // Видалити колір з локального сховищі
     }
+
+    // Завантаження зображень
+    document.getElementById("imageUploadForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      const fileInput = document.getElementById("fileInput");
+      const file = fileInput.files[0];
+      const storageRef = storage.ref('images/' + file.name);
+
+      storageRef.put(file).then(function(snapshot) {
+        snapshot.ref.getDownloadURL().then(function(downloadURL) {
+          db.ref('images').push({ url: downloadURL });
+          alert("Фото успішно завантажено!");
+          fileInput.value = ''; // Очистити поле вибору файлу
+        });
+      }).catch(function(error) {
+        console.error("Помилка завантаження: ", error);
+      });
+    });
+
+    // Завантаження відео
+    document.getElementById("videoUploadForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      const videoFileInput = document.getElementById("video-file");
+      const videoFile = videoFileInput.files[0];
+      const videoTitle = document.getElementById("video-title").value;
+      const privacy = document.getElementById("privacy").value;
+      const whitelistEmails = document.getElementById("whitelist-emails").value.split(',');
+
+      const videoStorageRef = storage.ref('videos/' + videoFile.name);
+      videoStorageRef.put(videoFile).then(function(snapshot) {
+        snapshot.ref.getDownloadURL().then(function(downloadURL) {
+          db.ref('videos').push({
+            title: videoTitle,
+            url: downloadURL,
+            privacy: privacy,
+            whitelist: whitelistEmails,
+          });
+          alert("Відео успішно завантажено!");
+          videoFileInput.value = ''; // Очистити поле вибору файлу
+          document.getElementById("video-title").value = ''; // Очистити поле назви
+          document.getElementById("whitelist-emails").value = ''; // Очистити поле електронних адрес
+        });
+      }).catch(function(error) {
+        console.error("Помилка завантаження відео: ", error);
+      });
+    });
 
     // Завантаження зображень і відображення галереї
     db.ref('images').on('value', function(snapshot) {
@@ -302,6 +348,14 @@
       });
     });
 
+    // Завантажити збережений колір
+    function loadUserColorPreference() {
+      const savedColor = localStorage.getItem('bgColor');
+      if (savedColor) {
+        document.body.style.backgroundColor = savedColor;
+      }
+    }
+
     // Перевірка місцезнаходження та блокування зміни кольору
     const blockedCountries = ['BY', 'RU', 'KP', 'IR', 'CN'];
     fetch('https://ipapi.co/json/')
@@ -314,14 +368,6 @@
         }
       });
 
-    // Завантажити збережений колір
-    function loadUserColorPreference() {
-      const savedColor = localStorage.getItem('bgColor');
-      if (savedColor) {
-        document.body.style.backgroundColor = savedColor;
-      }
-    }
-
     // Зберегти колір користувача
     function saveUserColorPreference() {
       const savedColor = localStorage.getItem('bgColor');
@@ -329,7 +375,6 @@
         document.body.style.backgroundColor = savedColor;
       }
     }
-
   </script>
 </body>
 </html>
