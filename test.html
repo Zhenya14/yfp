@@ -52,29 +52,17 @@
       transform: scale(1.05);
       box-shadow: 0 0 15px rgba(0, 255, 153, 0.75);
     }
-    #uploadForm {
+    #uploadForm, #uploadForm2 {
       background: white;
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       position: fixed;
       left: 50%;
-      transform: translate(-50%, -100%); /* Початковий стан (форма виїжджає згори) */
+      transform: translate(-50%, -100%);
       z-index: 1000;
       opacity: 0;
-      transition: transform 0.5s ease, opacity 0.5s ease; /* Анімація */
-    }
-    #uploadForm2 {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      position: fixed;
-      left: 50%;
-      transform: translate(-50%, -100%); /* Початковий стан (форма виїжджає згори) */
-      z-index: 1000;
-      opacity: 0;
-      transition: transform 0.5s ease, opacity 0.5s ease; /* Анімація */
+      transition: transform 0.5s ease, opacity 0.5s ease;
     }
     #loginForm {
       background: white;
@@ -83,22 +71,14 @@
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
       position: fixed;
       left: 50%;
-      transform: translate(-50%, -100%); /* Початковий стан (форма виїжджає згори) */
+      transform: translate(-50%, -100%);
       z-index: 1000;
       opacity: 0;
-      transition: transform 0.5s ease, opacity 0.5s ease; /* Анімація */
-      }
-    #loginForm.active {
-      transform: translate(-50%, 0); /* Переміщення вниз до центру */
-      opacity: 1; /* Плавна поява */
+      transition: transform 0.5s ease, opacity 0.5s ease;
     }
-    #uploadForm.active {
-      transform: translate(-50%, 0); /* Переміщення вниз до центру */
-      opacity: 1; /* Плавна поява */
-    }
-    #uploadForm2.active {
-      transform: translate(-50%, 0); /* Переміщення вниз до центру */
-      opacity: 1; /* Плавна поява */
+    #loginForm.active, #uploadForm.active, #uploadForm2.active {
+      transform: translate(-50%, 0);
+      opacity: 1;
     }
     #error-message {
       color: red;
@@ -128,9 +108,8 @@
 </head>
 <body>
   <button id="login" onclick="openLoginForm()" class="chip-button">Увійти</button>
-  <button id="openUploadForm" onclick="openUploadForm()" class="chip-button" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: none;"><i class="material-icons">add</i></button>
-  <button id="openUploadphotoForm" onclick="openUploadphotoForm()" class="chip-button" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: none;">Завантажити фото</button>
-  <button id="openUploadvideoForm" onclick="openUploadvideoForm()" class="chip-button" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: none;"></button>
+  <button id="openUploadphotoForm" onclick="openUploadphotoForm()" class="chip-button" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">Завантажити фото</button>
+  <button id="openUploadvideoForm" onclick="openUploadvideoForm()" class="chip-button" style="position: fixed; bottom: 80px; right: 20px; z-index: 1000;">Завантажити відео</button>
 
   <!-- Форма входу -->
   <div id="loginForm">
@@ -153,18 +132,23 @@
       <button type="submit" class="chip-button">Завантажити</button>
     </form>
   </div>
-<div id="uploadForm2">
-  <form id="videoUploadForm">
-    <input type="text" id="video-title" placeholder="Назва відео">
-        <input type="file" id="video-file" accept="video/*">
-        <select id="privacy">
-            <option value="public">Публічне</option>
-            <option value="private">Приватне</option>
-        </select>
-        <input type="text" id="whitelist-emails" placeholder="Електронні адреси, через кому (для приватних відео)">
-        <button id="upload-video">Завантажити відео</button>
+
+  <!-- Форма завантаження відео -->
+  <div id="uploadForm2">
+    <form id="videoUploadForm">
+      <label for="video-title">Назва відео:</label>
+      <input type="text" id="video-title" placeholder="Назва відео" required>
+      <input type="file" id="video-file" accept="video/*" required>
+      <label for="privacy">Приватність:</label>
+      <select id="privacy">
+        <option value="public">Публічне</option>
+        <option value="private">Приватне</option>
+      </select>
+      <input type="text" id="whitelist-emails" placeholder="Електронні адреси, через кому (для приватних відео)">
+      <button type="submit" class="chip-button">Завантажити відео</button>
     </form>
   </div>
+
   <div id="colorControls">
     <h3>Зміна кольору</h3>
     <label for="backgroundColor">Колір фону:</label>
@@ -194,7 +178,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
   <script>
-    // Firebase конфігурація
     const firebaseConfig = {
       apiKey: "AIzaSyCbk-8Z1msxjBkC-ystVwvXig26bsSHolE",
       authDomain: "photo-gallery-20dd5.firebaseapp.com",
@@ -206,155 +189,50 @@
       measurementId: "G-H5QHS9YQK4"
     };
 
-    // Ініціалізація Firebase
     firebase.initializeApp(firebaseConfig);
     const storage = firebase.storage();
     const auth = firebase.auth();
 
-    // Функція для відкриття форми завантаження зображень
     window.openUploadForm = function() {
       document.getElementById("openUploadvideoForm").style.display = 'block';
       document.getElementById("openUploadphotoForm").style.display = 'block';
-    };
+    }
 
-    // Функція для відкриття форми входу
-    window.openLoginForm = function() {
-      document.getElementById("loginForm").classList.add("active");
-    };
-    window.openUploadvideoForm = function() {
-      document.getElementById("uploadForm2").classList.add("active");
-    };
-    window.openUploadphotoForm = function() {
+    function openUploadphotoForm() {
+      closeForms();
       document.getElementById("uploadForm").classList.add("active");
-    };
-    // Обробка форми входу
+    }
+
+    function openUploadvideoForm() {
+      closeForms();
+      document.getElementById("uploadForm2").classList.add("active");
+    }
+
+    function closeForms() {
+      document.getElementById("uploadForm").classList.remove("active");
+      document.getElementById("uploadForm2").classList.remove("active");
+    }
+
     document.getElementById("loginFormElement").addEventListener("submit", function(event) {
       event.preventDefault();
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const errorMessage = document.getElementById("error-message");
-
-      auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          document.getElementById("loginForm").style.display = "none";
-          document.getElementById("openUploadForm").style.display = "block";
-          errorMessage.innerHTML = '';
-          loadImages(); // Завантажуємо зображення після входу
-        })
-        .catch((error) => {
-          errorMessage.innerHTML = 'Помилка: ' + error.message;
-        });
+      var email = document.getElementById("email").value;
+      var password = document.getElementById("password").value;
+      if (email === "zhuzhun2008@gmail.com" && password === "yourpassword") {
+        alert("Успішний вхід");
+        document.getElementById("login").style.display = "none";
+      } else {
+        document.getElementById("error-message").textContent = "Невірна електронна адреса або пароль";
+      }
     });
 
-    // Обробка завантаження зображень
-    document.getElementById("imageUploadForm").addEventListener("submit", function(event) {
-      event.preventDefault();
-      const file = document.getElementById("fileInput").files[0];
-      const storageRef = storage.ref('images/' + file.name);
-      
-      storageRef.put(file).then(() => {
-        alert('Зображення завантажено');
-        document.getElementById("uploadForm").style.display = "none";
-        loadImages();
-      }).catch((error) => {
-        alert('Помилка завантаження: ' + error.message);
-      });
-    });
-
-    // Функція для завантаження зображень з Firebase Storage
-    function loadImages() {
-      const storageRef = storage.ref().child('images/');
-      const imagesContainer = document.getElementById("imagesContainer");
-      imagesContainer.innerHTML = ''; // Очищаємо контейнер перед завантаженням
-
-      storageRef.listAll().then((result) => {
-        result.items.forEach((imageRef) => {
-          imageRef.getDownloadURL().then((url) => {
-            // Створюємо елемент зображення
-            const imgElement = document.createElement("img");
-            imgElement.src = url;
-
-            // Додаємо кнопку видалення тільки для адміністратора
-            const deleteButton = document.createElement("button");
-            deleteButton.className = "delete-button";
-            deleteButton.textContent = "Видалити";
-
-            deleteButton.onclick = function() {
-              if (auth.currentUser && auth.currentUser.email === "zhuzhun2008@gmail.com") {
-                deleteImage(imageRef, imgElement);
-              } else {
-                alert("Видаляти може лише адміністратор");
-              }
-            };
-
-            // Додаємо зображення та кнопку видалення в контейнер
-            const imgContainer = document.createElement("div");
-            imgContainer.appendChild(imgElement);
-            if (auth.currentUser && auth.currentUser.email === "zhuzhun2008@gmail.com") {
-              imgContainer.appendChild(deleteButton);
-            }
-            imagesContainer.appendChild(imgContainer);
-          });
-        });
-      }).catch((error) => {
-        console.log("Помилка завантаження зображень: ", error);
-      });
-    }
-
-    // Функція для видалення зображення
-    function deleteImage(imageRef, imgElement) {
-      imageRef.delete().then(() => {
-        alert("Зображення видалено");
-        imgElement.parentElement.remove();
-      }).catch((error) => {
-        console.log("Помилка при видаленні зображення: ", error);
-      });
-    }
-
-    // Виклик функції для завантаження зображень при завантаженні сторінки
-
-    // Зміна кольорів
     function changeBackgroundColor() {
-      const color = document.getElementById("backgroundColor").value;
-      document.body.style.backgroundColor = color;
-      localStorage.setItem('backgroundColor', color); // Зберігання кольору у localStorage
+      var bgColor = document.getElementById("backgroundColor").value;
+      document.body.style.backgroundColor = bgColor;
     }
 
     function resetColors() {
-      document.body.style.backgroundColor = "#f4f4f4";
-      localStorage.removeItem('backgroundColor'); // Видалення кольору з localStorage
+      document.body.style.backgroundColor = '#f4f4f4';
     }
-
-    // Завантаження збереженого кольору
-    function loadSavedColors() {
-      const savedColor = localStorage.getItem('backgroundColor');
-      if (savedColor) {
-        document.body.style.backgroundColor = savedColor;
-        document.getElementById('backgroundColor').value = savedColor; // Встановлення значення в input
-      }
-    }
-
-    // Перевірка геолокації користувача
-    fetch('https://ipapi.co/json/')
-      .then(response => response.json())
-      .then(data => {
-        const blockedCountries = ["RU", "BY", "IR", "KP"]; // Список заборонених країн
-        if (blockedCountries.includes(data.country)) { // Якщо країна в списку
-          document.getElementById("colorControls").style.display = "none"; // Сховати управління кольором
-          document.body.style.backgroundColor = "#f4f4f4";
-          localStorage.removeItem('backgroundColor');
-        } else {
-          document.getElementById("colorControls").style.display = "block"; // Показати управління кольором
-        }
-      })
-      .catch(error => {
-        console.error("Error fetching geolocation data:", error);
-      });
-          window.onload = function() {
-    loadSavedColors(); // Ваш код для збереження кольорів
-    loadImages()
-          }
   </script>
 </body>
 </html>
