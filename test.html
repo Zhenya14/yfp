@@ -129,8 +129,8 @@
 <body>
   <button id="login" onclick="openLoginForm()" class="chip-button">Увійти</button>
   <button id="openUploadForm" onclick="openUploadForm()" class="chip-button" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: none;"><i class="material-icons">add</i></button>
-  <button id="openUploadForm" onclick="openUploadphotoForm()" class="chip-button" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: none;">Завантажити фото</button>
-  <button id="openUploadForm" onclick="openUploadvideoForm()" class="chip-button" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: none;"></button>
+  <button id="openUploadphotoForm" onclick="openUploadphotoForm()" class="chip-button" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: none;">Завантажити фото</button>
+  <button id="openUploadvideoForm" onclick="openUploadvideoForm()" class="chip-button" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: none;"></button>
 
   <!-- Форма входу -->
   <div id="loginForm">
@@ -213,7 +213,8 @@
 
     // Функція для відкриття форми завантаження зображень
     window.openUploadForm = function() {
-      document.getElementById("uploadForm").classList.add("active");
+      document.getElementById("openUploadvideoForm").style.display = 'block';
+      document.getElementById("openUploadphotoForm").style.display = 'block';
     };
 
     // Функція для відкриття форми входу
