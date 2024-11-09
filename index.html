@@ -118,6 +118,7 @@
   <div id="loginForm">
     <h2>Вхід</h2>
     <form id="loginFormElement">
+      <button id="login" onclick="closeLoginForm()" class="chip-button"><i class="material-icons">close</i></button>
       <label for="email">Електронна пошта:</label>
       <input type="email" id="email" name="email" required>
       <label for="password">Пароль:</label>
@@ -130,6 +131,7 @@
   <!-- Форма завантаження зображень -->
   <div id="uploadForm">
     <form id="imageUploadForm">
+      <button id="login" onclick="closeUploadForm()" class="chip-button"><i class="material-icons">close</i></button>
       <label for="fileInput">Виберіть зображення:</label>
       <input type="file" id="fileInput" name="file" accept="image/*" required>
       <button type="submit" class="chip-button"><i class="material-icons">download</i>Завантажити</button>
@@ -186,12 +188,16 @@
     window.openUploadForm = function() {
       document.getElementById("uploadForm").classList.add("active");
     };
-
+    window.closeUploadForm = function() {
+      document.getElementById("uploadForm").classList.remove("active");
+    };
     // Функція для відкриття форми входу
     window.openLoginForm = function() {
       document.getElementById("loginForm").classList.add("active");
     };
-
+    window.closeLoginForm = function() {
+      document.getElementById("loginForm").classList.remove("active");
+    };
     // Обробка форми входу
     document.getElementById("loginFormElement").addEventListener("submit", function(event) {
       event.preventDefault();
@@ -208,7 +214,7 @@
           loadImages(); // Завантажуємо зображення після входу
         })
         .catch((error) => {
-          errorMessage.innerHTML = 'Помилка: ' + error.message;
+          errorMessage.innerHTML = 'Невірний логін або пароль.';
         });
     });
 
@@ -219,11 +225,11 @@
       const storageRef = storage.ref('images/' + file.name);
       
       storageRef.put(file).then(() => {
-        alert('Зображення завантажено');
+        alert('Фото завантажено!');
         document.getElementById("uploadForm").style.display = "none";
         loadImages();
       }).catch((error) => {
-        alert('Помилка завантаження: ' + error.message);
+        alert('Сталася помилка під час завантаження фото.');
       });
     });
 
@@ -262,18 +268,16 @@
             imagesContainer.appendChild(imgContainer);
           });
         });
-      }).catch((error) => {
-        console.log("Помилка завантаження зображень: ", error);
-      });
-    }
+      })
 
     // Функція для видалення зображення
     function deleteImage(imageRef, imgElement) {
+      confirm('Ви дійсно хочете видалити зображення?');
       imageRef.delete().then(() => {
-        alert("Зображення видалено");
+        alert("Фото видалено");
         imgElement.parentElement.remove();
       }).catch((error) => {
-        console.log("Помилка при видаленні зображення: ", error);
+        console.log("Сталася помилка під час видалення фото.);
       });
     }
 
