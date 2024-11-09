@@ -214,7 +214,7 @@
           loadImages(); // Завантажуємо зображення після входу
         })
         .catch((error) => {
-          errorMessage.innerHTML = 'Невірний логін або пароль.';
+          errorMessage.innerHTML = 'Помилка: ' + error.message;
         });
     });
 
@@ -225,11 +225,11 @@
       const storageRef = storage.ref('images/' + file.name);
       
       storageRef.put(file).then(() => {
-        alert('Фото завантажено!');
+        alert('Зображення завантажено');
         document.getElementById("uploadForm").style.display = "none";
         loadImages();
       }).catch((error) => {
-        alert('Сталася помилка під час завантаження фото.');
+        alert('Помилка завантаження: ' + error.message);
       });
     });
 
@@ -257,7 +257,7 @@
               } else {
                 alert("Видаляти може лише адміністратор");
               }
-    };
+            };
 
             // Додаємо зображення та кнопку видалення в контейнер
             const imgContainer = document.createElement("div");
@@ -267,15 +267,19 @@
             }
             imagesContainer.appendChild(imgContainer);
           });
-      })
+        });
+      }).catch((error) => {
+        console.log("Помилка завантаження зображень: ", error);
+      });
+    }
 
     // Функція для видалення зображення
     function deleteImage(imageRef, imgElement) {
       imageRef.delete().then(() => {
-        alert("Фото видалено");
+        alert("Зображення видалено");
         imgElement.parentElement.remove();
       }).catch((error) => {
-        console.log("Сталася помилка під час видалення фото.);
+        console.log("Помилка при видаленні зображення: ", error);
       });
     }
 
