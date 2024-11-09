@@ -272,7 +272,6 @@
 
     // Функція для видалення зображення
     function deleteImage(imageRef, imgElement) {
-      confirm('Ви дійсно хочете видалити зображення?');
       imageRef.delete().then(() => {
         alert("Фото видалено");
         imgElement.parentElement.remove();
